@@ -65,7 +65,7 @@ button:disabled {
 
 .header {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 24px;
 }
@@ -84,7 +84,7 @@ button:disabled {
   font-weight: 500;
   line-height: 1;
   letter-spacing: -0.02em;
-  font-variant-numeric: lining-nums;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .clock-period {
@@ -102,13 +102,14 @@ button:disabled {
 }
 
 .header-nav {
+  justify-self: center;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 .period {
-  min-width: 340px;
+  min-width: 320px;
   text-align: center;
   font-size: var(--text-lg);
   font-weight: 600;
@@ -362,7 +363,18 @@ button:disabled {
 
 .event.is-done,
 .is-past .event {
-  opacity: 0.62;
+  /* Fade the content, not the card, so grid lines don't show through. */
+  --tint: color-mix(in oklab, var(--feed) 12%, var(--birch));
+}
+
+.event.is-done > *,
+.is-past .event > * {
+  opacity: 0.6;
+}
+
+.event.is-allday.is-done,
+.is-past .event.is-allday {
+  background: color-mix(in oklab, var(--feed) 55%, var(--birch));
 }
 
 .event.is-overflow {
@@ -397,4 +409,179 @@ button:disabled {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Period transitions ---------------------------------------------------- */
+
+.period-body {
+  height: 100%;
+}
+
+.slide-next {
+  animation: slide-from-right 220ms ease-out;
+}
+
+.slide-prev {
+  animation: slide-from-left 220ms ease-out;
+}
+
+@keyframes slide-from-right {
+  from {
+    transform: translateX(48px);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-from-left {
+  from {
+    transform: translateX(-48px);
+    opacity: 0;
+  }
+}
+
+/* Day view -------------------------------------------------------------- */
+
+.dayview {
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 520px;
+  gap: 16px;
+}
+
+.dayview.no-side {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  background: var(--birch);
+  border-radius: var(--radius-col);
+  padding: 20px 20px 24px 0;
+  min-height: 0;
+}
+
+.grid-hours {
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-hour {
+  flex: 1;
+  position: relative;
+}
+
+.grid-hour-end {
+  position: relative;
+  height: 0;
+}
+
+.grid-line-end {
+  border-top: 2px solid var(--line);
+}
+
+.grid-hour span,
+.grid-hour-end span {
+  position: absolute;
+  top: -0.65em;
+  right: 16px;
+  font-size: var(--text-sm);
+  color: var(--bark);
+  white-space: nowrap;
+}
+
+.grid-events {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-line {
+  flex: 1;
+  border-top: 2px solid var(--line);
+}
+
+.grid-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: var(--text-lg);
+  color: var(--bark);
+}
+
+.event.placed {
+  position: absolute;
+  overflow: hidden;
+  border: 2px solid var(--birch);
+  border-left: 8px solid var(--feed);
+  padding: 6px 14px;
+}
+
+.event.placed .event-title {
+  font-size: var(--text-lg);
+}
+
+.event.placed.is-short {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-block: 0;
+}
+
+.event.placed.is-short .event-title {
+  font-size: var(--text-md);
+  -webkit-line-clamp: 1;
+}
+
+.event.placed.is-short .event-time {
+  flex-shrink: 0;
+}
+
+.now-line {
+  position: absolute;
+  left: -10px;
+  right: 0;
+  height: 4px;
+  margin-top: -2px;
+  background: var(--ochre);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.now-line::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: -6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ochre);
+}
+
+.day-side {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 0;
+  overflow: hidden;
+  padding: 8px 4px;
+}
+
+.side-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.side-group h2 {
+  margin: 0 0 2px 4px;
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--bark);
+}
+
+.side-group .event-title {
+  font-size: var(--text-lg);
 }

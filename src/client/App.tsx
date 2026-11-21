@@ -1,13 +1,21 @@
 import { isSameDay, isSameWeek } from 'date-fns';
 import { useCallback, useMemo, useState, type CSSProperties } from 'react';
 import type { ClientSettings } from '../shared/types';
+import { DayView } from './components/DayView';
 import { Header } from './components/Header';
 import { WeekView } from './components/WeekView';
 import { useEvents } from './hooks/useEvents';
+import { useIdleReset } from './hooks/useIdleReset';
 import { useNow } from './hooks/useNow';
 import { useSettings } from './hooks/useSettings';
+import { useSwipe } from './hooks/useSwipe';
 import { useWeather } from './hooks/useWeather';
-import { fetchRange, periodLabel, step, weekDays, type View } from './lib/dates';
+import { dayKey, eventsForDay, fetchRange, parseDateKey, periodLabel, step, weekDays, type View } from './lib/dates';
+
+/** Return to this week after this long without a touch. */
+const IDLE_RESET_MS = 3 * 60_000;
+
+const initialParams = new URLSearchParams(window.location.search);
 
 export function App() {
   const settings = useSettings();
@@ -18,8 +26,14 @@ export function App() {
 function Calendar({ settings }: { settings: ClientSettings }) {
   const now = useNow();
   const weather = useWeather();
-  const [view, setView] = useState<View>('week');
-  const [anchor, setAnchor] = useState(() => new Date());
+  // Optional ?view=day&date=2026-11-21 for development and screenshots.
+  const [view, setView] = useState<View>(() => (initialParams.get('view') === 'day' ? 'day' : 'week'));
+  const [anchor, setAnchor] = useState(() => {
+    const d = initialParams.get('date');
+    return d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? parseDateKey(d) : new Date();
+  });
+  /** Direction of the last navigation, for the slide-in animation. */
+  const [motion, setMotion] = useState<'next' | 'prev' | 'none'>('none');
   const ws = settings.weekStartsOn;
 
   const isCurrentPeriod =
@@ -28,14 +42,44 @@ function Calendar({ settings }: { settings: ClientSettings }) {
   const range = useMemo(() => fetchRange(anchor, ws), [anchor, ws]);
   const events = useEvents(range.start, range.end, settings.refreshMinutes * 60_000);
   const days = useMemo(() => weekDays(anchor, ws), [anchor, ws]);
+  const allEvents = events.data?.events ?? [];
+
+  const go = useCallback(
+    (dir: 1 | -1) => {
+      setMotion(dir === 1 ? 'next' : 'prev');
+      setAnchor((a) => step(view, a, dir));
+    },
+    [view],
+  );
+
+  const goToday = useCallback(() => {
+    setMotion('none');
+    setAnchor(new Date());
+  }, []);
 
   const openDay = useCallback((day: Date) => {
+    setMotion('none');
     setAnchor(day);
     setView('day');
   }, []);
 
-  const go = useCallback((dir: 1 | -1) => setAnchor((a) => step(view, a, dir)), [view]);
-  const legend = useMemo(() => settings.feeds, [settings.feeds]);
+  const changeView = useCallback((v: View) => {
+    setMotion('none');
+    setView(v);
+  }, []);
+
+  useIdleReset(
+    IDLE_RESET_MS,
+    () => {
+      setMotion('none');
+      setView('week');
+      setAnchor(new Date());
+    },
+    dayKey(now),
+  );
+
+  const swipe = useSwipe((dir) => go(dir === 'left' ? 1 : -1));
+  const periodKey = view === 'week' ? `w${dayKey(days[0]!)}` : `d${dayKey(anchor)}`;
 
   return (
     <div className="app">
@@ -45,17 +89,29 @@ function Calendar({ settings }: { settings: ClientSettings }) {
         view={view}
         period={periodLabel(view, anchor, ws)}
         isCurrentPeriod={isCurrentPeriod}
-        onViewChange={setView}
+        onViewChange={changeView}
         onPrev={() => go(-1)}
         onNext={() => go(1)}
-        onToday={() => setAnchor(new Date())}
+        onToday={goToday}
       />
-      <main className="main">
-        <WeekView days={days} now={now} events={events.data?.events ?? []} onOpenDay={openDay} />
+      <main className="main" {...swipe}>
+        <div key={periodKey} className={`period-body slide-${motion}`}>
+          {view === 'week' ? (
+            <WeekView days={days} now={now} events={allEvents} onOpenDay={openDay} />
+          ) : (
+            <DayView
+              day={anchor}
+              now={now}
+              events={eventsForDay(allEvents, anchor)}
+              startHour={settings.dayStartHour}
+              endHour={settings.dayEndHour}
+            />
+          )}
+        </div>
       </main>
       <footer className="footer">
         <ul className="legend">
-          {legend.map((f) => (
+          {settings.feeds.map((f) => (
             <li key={f.name} style={{ '--feed': f.color } as CSSProperties}>
               <span className="swatch" />
               {f.name}

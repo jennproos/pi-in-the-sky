@@ -72,10 +72,16 @@ export async function buildApp(config: AppConfig, deps: AppDeps = {}): Promise<F
 
   const clientDir = deps.clientDir ?? defaultClientDir();
   if (existsSync(join(clientDir, 'index.html'))) {
-    await app.register(fastifyStatic, { root: clientDir, wildcard: false });
-    app.setNotFoundHandler((req, reply) =>
-      req.url.startsWith('/api/') ? reply.code(404).send({ error: 'Not found' }) : reply.sendFile('index.html'),
-    );
+    // Files are looked up on disk per request, so a rebuild doesn't need a restart.
+    await app.register(fastifyStatic, { root: clientDir });
+    app.setNotFoundHandler((req, reply) => {
+      const path = req.url.split('?')[0] ?? '';
+      // Missing API routes and assets get a real 404; anything else is an app route.
+      if (path.startsWith('/api/') || /\.[a-z0-9]+$/i.test(path)) {
+        return reply.code(404).send({ error: 'Not found' });
+      }
+      return reply.sendFile('index.html');
+    });
   }
 
   return app;

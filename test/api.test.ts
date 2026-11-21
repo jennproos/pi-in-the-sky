@@ -65,6 +65,7 @@ describe('API', () => {
     expect((await app.inject('/')).body).toContain('<title>cal</title>');
     expect((await app.inject('/some/route')).body).toContain('<title>cal</title>');
     expect((await app.inject('/api/nope')).statusCode).toBe(404);
+    expect((await app.inject('/assets/missing-abc123.js')).statusCode).toBe(404);
   });
 });
 
