@@ -1,0 +1,20 @@
+# systemd unit for the calendar server.
+# Install: see README → "Run the server on boot".
+# Replace YOUR_USER with the account you log in as on the Pi.
+
+[Unit]
+Description=Pi in the Sky family calendar server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=YOUR_USER
+WorkingDirectory=/home/YOUR_USER/pi-in-the-sky
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node dist/server/index.js
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

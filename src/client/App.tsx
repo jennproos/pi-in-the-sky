@@ -1,5 +1,5 @@
 import { isSameDay, isSameWeek } from 'date-fns';
-import { useCallback, useMemo, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import type { ClientSettings } from '../shared/types';
 import { DayView } from './components/DayView';
 import { Header } from './components/Header';
@@ -78,6 +78,11 @@ function Calendar({ settings }: { settings: ClientSettings }) {
     },
     dayKey(now),
   );
+
+  // Reload once a night: picks up new builds and keeps a long-running kiosk tab lean.
+  useEffect(() => {
+    if (now.getHours() === 3 && now.getMinutes() === 0) window.location.reload();
+  }, [now]);
 
   const swipe = useSwipe((dir) => go(dir === 'left' ? 1 : -1));
   const periodKey = view === 'week' ? `w${dayKey(days[0]!)}` : `d${dayKey(anchor)}`;
