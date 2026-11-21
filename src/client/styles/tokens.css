@@ -1,0 +1,25 @@
+:root {
+  /* Muted autumn palette */
+  --lichen: #d9d6c7; /* page */
+  --birch: #ece9df; /* day columns, cards */
+  --umber: #2f2a24; /* ink */
+  --bark: #6b6256; /* secondary ink */
+  --ochre: #b8862f; /* today, used nowhere else */
+  --moss: #5f6b4e; /* controls */
+  --line: #c4bfae;
+  --warn: #a5561f;
+
+  --font-ui: 'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --font-numeral: 'Fraunces Variable', Georgia, serif;
+
+  /* Sized for 1920×1080 read from a few metres away */
+  --text-sm: 20px;
+  --text-md: 24px;
+  --text-lg: 30px;
+  --text-xl: 40px;
+
+  --touch: 56px; /* minimum touch target (≥ 48px) */
+  --gutter: 20px;
+  --radius-col: 20px;
+  --radius-card: 10px;
+}

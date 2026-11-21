@@ -16,5 +16,7 @@ export default defineConfig({
   test: {
     include: ['test/**/*.test.ts'],
     environment: 'node',
+    // Client date tests assert local times; pin the zone so they pass anywhere.
+    env: { TZ: 'America/Chicago' },
   },
 });
