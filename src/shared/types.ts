@@ -24,6 +24,8 @@ export interface FeedStatus {
   color: string;
   ok: boolean;
   error?: string;
+  /** When the feed was last fetched successfully (ISO), if ever. */
+  lastSuccess?: string;
   eventCount: number;
 }
 

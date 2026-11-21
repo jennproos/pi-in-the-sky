@@ -5,6 +5,7 @@
     "latitude": 44.98,
     "longitude": -93.27
   },
+  "timeZone": "America/Chicago",
   "units": "fahrenheit",
   "weekStartsOn": 0,
   "dayStartHour": 7,

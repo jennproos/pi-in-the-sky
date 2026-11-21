@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { z } from 'zod';
+import { isValidTimeZone, systemTimeZone } from './ics/timezone.js';
 
 const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'must be a hex color like #B5651D');
 
@@ -12,6 +13,11 @@ export const configSchema = z
       latitude: z.number().min(-90).max(90),
       longitude: z.number().min(-180).max(180),
     }),
+    /** IANA zone for floating times and all-day dates. Defaults to the system zone. */
+    timeZone: z
+      .string()
+      .refine(isValidTimeZone, 'must be an IANA time zone like America/Chicago')
+      .default(() => systemTimeZone()),
     units: z.enum(['fahrenheit', 'celsius']).default('fahrenheit'),
     weekStartsOn: z.union([z.literal(0), z.literal(1)]).default(0),
     dayStartHour: z.number().int().min(0).max(23).default(7),
@@ -22,7 +28,7 @@ export const configSchema = z
         z.object({
           name: z.string().min(1),
           color: hexColor,
-          url: z.url(),
+          url: z.string().regex(/^(https?|webcals?):\/\/\S+$/i, 'must be an http(s) or webcal URL'),
         }),
       )
       .min(1, 'add at least one feed'),
