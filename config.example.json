@@ -14,12 +14,12 @@
   "feeds": [
     {
       "name": "Family",
-      "color": "#B5651D",
+      "color": "#A0522D",
       "url": "https://calendar.google.com/calendar/ical/REPLACE_ME/basic.ics"
     },
     {
       "name": "School",
-      "color": "#6B8E5A",
+      "color": "#66753A",
       "url": "https://example.com/school.ics"
     }
   ]
