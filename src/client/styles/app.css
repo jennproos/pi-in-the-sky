@@ -374,7 +374,9 @@ button:disabled {
 
 .event.is-allday.is-done,
 .is-past .event.is-allday {
-  background: color-mix(in oklab, var(--feed) 55%, var(--birch));
+  background: var(--tint);
+  border-left: 8px solid var(--feed);
+  color: var(--umber);
 }
 
 .event.is-overflow {
@@ -584,4 +586,39 @@ button:disabled {
 
 .side-group .event-title {
   font-size: var(--text-lg);
+}
+
+/* Refresh status -------------------------------------------------------- */
+
+.legend li.is-failed .swatch {
+  box-shadow: 0 0 0 3px var(--lichen), 0 0 0 5px var(--warn);
+}
+
+.refresh-status {
+  min-height: var(--touch);
+  display: flex;
+  align-items: center;
+}
+
+.refresh-warning {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  border-radius: var(--touch);
+  background: color-mix(in oklab, var(--warn) 14%, var(--lichen));
+  font-size: var(--text-sm);
+  color: var(--umber);
+}
+
+.refresh-warning:active {
+  background: color-mix(in oklab, var(--warn) 24%, var(--lichen));
+}
+
+.warn-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--warn);
+  flex-shrink: 0;
 }

@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState, type CSSProperties } from 'react';
 import type { ClientSettings } from '../shared/types';
 import { DayView } from './components/DayView';
 import { Header } from './components/Header';
+import { RefreshStatus } from './components/RefreshStatus';
 import { WeekView } from './components/WeekView';
 import { useEvents } from './hooks/useEvents';
 import { useIdleReset } from './hooks/useIdleReset';
@@ -112,12 +113,23 @@ function Calendar({ settings }: { settings: ClientSettings }) {
       <footer className="footer">
         <ul className="legend">
           {settings.feeds.map((f) => (
-            <li key={f.name} style={{ '--feed': f.color } as CSSProperties}>
+            <li
+              key={f.name}
+              className={events.failedFeeds.some((x) => x.name === f.name) ? 'is-failed' : undefined}
+              style={{ '--feed': f.color } as CSSProperties}
+            >
               <span className="swatch" />
               {f.name}
             </li>
           ))}
         </ul>
+        <RefreshStatus
+          now={now}
+          error={events.error}
+          lastSuccess={events.lastSuccess}
+          failedFeeds={events.failedFeeds}
+          onRetry={events.refresh}
+        />
       </footer>
     </div>
   );
