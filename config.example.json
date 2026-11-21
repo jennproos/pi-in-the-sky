@@ -1,0 +1,25 @@
+{
+  "port": 3000,
+  "location": {
+    "name": "Home",
+    "latitude": 44.98,
+    "longitude": -93.27
+  },
+  "units": "fahrenheit",
+  "weekStartsOn": 0,
+  "dayStartHour": 7,
+  "dayEndHour": 21,
+  "refreshMinutes": 5,
+  "feeds": [
+    {
+      "name": "Family",
+      "color": "#B5651D",
+      "url": "https://calendar.google.com/calendar/ical/REPLACE_ME/basic.ics"
+    },
+    {
+      "name": "School",
+      "color": "#6B8E5A",
+      "url": "https://example.com/school.ics"
+    }
+  ]
+}
