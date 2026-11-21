@@ -96,6 +96,7 @@ button:disabled {
 }
 
 .header-date {
+  white-space: nowrap;
   font-size: var(--text-lg);
   color: var(--bark);
 }
@@ -235,4 +236,165 @@ button:disabled {
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* Week view ------------------------------------------------------------- */
+
+.main {
+  min-height: 0;
+  position: relative;
+}
+
+.week {
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.day-col {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--birch);
+  border-radius: var(--radius-col);
+  overflow: hidden;
+}
+
+.day-col.is-today {
+  box-shadow: inset 0 0 0 4px var(--ochre);
+}
+
+.day-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 84px;
+  padding: 12px 18px 8px;
+  text-align: left;
+}
+
+.day-name {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--bark);
+}
+
+.day-num {
+  font-family: var(--font-numeral);
+  font-variation-settings: 'SOFT' 100;
+  font-size: 56px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.is-today .day-name {
+  color: var(--umber);
+}
+
+.is-today .day-num {
+  color: var(--ochre);
+  font-weight: 700;
+}
+
+.is-past .day-head {
+  opacity: 0.55;
+}
+
+.day-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 10px;
+}
+
+.day-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 10px;
+}
+
+.day-empty {
+  padding: 8px 8px;
+  font-size: var(--text-sm);
+  color: var(--bark);
+  opacity: 0.7;
+}
+
+.is-past .day-empty {
+  visibility: hidden;
+}
+
+.more {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  height: 52px;
+  border-radius: var(--radius-card);
+  background: var(--lichen);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--umber);
+}
+
+/* Event cards ----------------------------------------------------------- */
+
+.event {
+  --tint: color-mix(in oklab, var(--feed) 22%, var(--birch));
+  background: var(--tint);
+  border-left: 8px solid var(--feed);
+  border-radius: var(--radius-card);
+  padding: 8px 12px 10px;
+  min-width: 0;
+}
+
+.event.is-allday {
+  background: var(--feed);
+  border-left: 0;
+  color: #fbf8f1;
+  padding: 8px 14px;
+}
+
+.event.is-done,
+.is-past .event {
+  opacity: 0.62;
+}
+
+.event.is-overflow {
+  visibility: hidden;
+}
+
+.event-time {
+  font-size: var(--text-sm);
+  color: var(--bark);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-title {
+  font-size: var(--text-md);
+  font-weight: 700;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.event-location {
+  margin-top: 2px;
+  font-size: var(--text-sm);
+  color: var(--bark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
