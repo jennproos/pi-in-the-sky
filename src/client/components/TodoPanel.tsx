@@ -20,13 +20,21 @@ export function TodoPanel({ people, state, keyboard, className = '' }: Props) {
   const colors = useMemo(() => new Map(people.map((p) => [p.name, p.color])), [people]);
 
   const shown = state.todos.filter((t) => visibleFor(filter, t.assignees));
-  const open = shown.filter((t) => !t.done).length;
 
   return (
     <aside className={`todo-panel ${className}`} aria-label="To-do list">
       <div className="todo-head">
         <h2>To do</h2>
-        {state.loaded && <span className="todo-count">{open === 0 ? 'All done' : `${open} left`}</span>}
+        <button
+          type="button"
+          className="icon-button todo-add"
+          onClick={() => setEditing({ mode: 'add', assignTo: filter })}
+          aria-label="Add item"
+        >
+          <svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </button>
       </div>
 
       {people.length > 0 && (
@@ -85,18 +93,11 @@ export function TodoPanel({ people, state, keyboard, className = '' }: Props) {
           </li>
         ))}
         {state.loaded && shown.length === 0 && (
-          <li className="todo-empty">{filter ? `Nothing for ${filter}.` : 'Nothing to do.'} Tap Add item to start the list.</li>
+          <li className="todo-empty">{filter ? `Nothing for ${filter}.` : 'Nothing to do.'} Tap + to start the list.</li>
         )}
       </ul>
 
       {state.error && <p className="todo-error">{state.error}</p>}
-
-      <button type="button" className="todo-add" onClick={() => setEditing({ mode: 'add', assignTo: filter })}>
-        <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
-          <path d="M12 5v14M5 12h14" />
-        </svg>
-        Add item
-      </button>
 
       {editing && (
         <TodoEditor

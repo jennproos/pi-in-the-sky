@@ -629,20 +629,17 @@ button:disabled {
 
 .todo-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  padding: 4px 6px 10px;
+  /* The + button is taller than the heading; let it overlap the padding. */
+  margin: -8px -4px 0 0;
+  padding: 0 0 2px 6px;
 }
 
 .todo-head h2 {
   margin: 0;
   font-size: var(--text-lg);
   font-weight: 700;
-}
-
-.todo-count {
-  font-size: var(--text-sm);
-  color: var(--bark);
 }
 
 .todo-filter {
@@ -792,28 +789,11 @@ button:disabled {
   color: var(--warn);
 }
 
-.todo-add {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 12px;
-  border-radius: var(--radius-card);
-  border: 2px dashed var(--line);
-  font-size: var(--text-md);
-  font-weight: 700;
-  color: var(--moss);
-}
-
 .todo-add svg {
   fill: none;
   stroke: currentColor;
-  stroke-width: 2.5;
+  stroke-width: 2.75;
   stroke-linecap: round;
-}
-
-.todo-add:active {
-  background: var(--lichen);
 }
 
 /* To-do editor sheet ---------------------------------------------------- */
