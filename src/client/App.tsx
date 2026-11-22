@@ -1,8 +1,9 @@
-import { isSameDay, isSameWeek } from 'date-fns';
+import { format, isSameDay, isSameMonth, isSameWeek } from 'date-fns';
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import type { ClientSettings } from '../shared/types';
 import { DayView } from './components/DayView';
 import { Header } from './components/Header';
+import { MonthView } from './components/MonthView';
 import { RefreshStatus } from './components/RefreshStatus';
 import { ThemePicker } from './components/ThemePicker';
 import { TodoPanel } from './components/TodoPanel';
@@ -39,8 +40,11 @@ function Calendar({ settings }: { settings: ClientSettings }) {
   useReloadOnDeploy();
   /** Bumped by the idle reset to put the to-do panel back to its default state. */
   const [resetCount, setResetCount] = useState(0);
-  // Optional ?view=day&date=2026-11-21 for development and screenshots.
-  const [view, setView] = useState<View>(() => (initialParams.get('view') === 'day' ? 'day' : 'week'));
+  // Optional ?view=day|month&date=2026-11-21 for development and screenshots.
+  const [view, setView] = useState<View>(() => {
+    const v = initialParams.get('view');
+    return v === 'day' || v === 'month' ? v : 'week';
+  });
   const [anchor, setAnchor] = useState(() => {
     const d = initialParams.get('date');
     return d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? parseDateKey(d) : new Date();
@@ -50,9 +54,13 @@ function Calendar({ settings }: { settings: ClientSettings }) {
   const ws = settings.weekStartsOn;
 
   const isCurrentPeriod =
-    view === 'week' ? isSameWeek(anchor, now, { weekStartsOn: ws }) : isSameDay(anchor, now);
+    view === 'week'
+      ? isSameWeek(anchor, now, { weekStartsOn: ws })
+      : view === 'month'
+        ? isSameMonth(anchor, now)
+        : isSameDay(anchor, now);
 
-  const range = useMemo(() => fetchRange(anchor, ws), [anchor, ws]);
+  const range = useMemo(() => fetchRange(view, anchor, ws), [view, anchor, ws]);
   const events = useEvents(range.start, range.end, settings.refreshMinutes * 60_000);
   const days = useMemo(() => weekDays(anchor, ws), [anchor, ws]);
   const rawEvents = events.data?.events;
@@ -103,7 +111,8 @@ function Calendar({ settings }: { settings: ClientSettings }) {
   }, [now]);
 
   const swipe = useSwipe((dir) => go(dir === 'left' ? 1 : -1));
-  const periodKey = view === 'week' ? `w${dayKey(days[0]!)}` : `d${dayKey(anchor)}`;
+  const periodKey =
+    view === 'week' ? `w${dayKey(days[0]!)}` : view === 'month' ? `m${format(anchor, 'yyyy-MM')}` : `d${dayKey(anchor)}`;
 
   return (
     <div className="app">
@@ -123,6 +132,8 @@ function Calendar({ settings }: { settings: ClientSettings }) {
           <div key={periodKey} className={`period-body slide-${motion}`}>
             {view === 'week' ? (
               <WeekView days={days} now={now} events={allEvents} onOpenDay={openDay} />
+            ) : view === 'month' ? (
+              <MonthView anchor={anchor} now={now} events={allEvents} weekStartsOn={ws} onOpenDay={openDay} />
             ) : (
               <DayView
                 day={anchor}

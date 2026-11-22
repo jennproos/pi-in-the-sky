@@ -1,8 +1,8 @@
 # Pi in the Sky
 
-A family wall calendar for a Raspberry Pi and a touchscreen. It merges several ICS calendar feeds into one week or day view, shows the current weather, and is built to be read from across a room.
+A family wall calendar for a Raspberry Pi and a touchscreen. It merges several ICS calendar feeds into one week, day or month view, shows the current weather, and is built to be read from across a room.
 
-- **Week view** (default) and **day view**. Tap Week/Day, tap a day's header to open it, or swipe left/right to page through.
+- **Week view** (default), **day view** and **month view**. Tap Week/Day/Month, tap a day to open it, or swipe left/right to page through. Month view draws trips and other multi-day events as bars across the days they cover.
 - Merges any number of **ICS feeds** (Google, iCloud, Outlook, school sites). Each feed has its own name and color.
 - **Weather** from [Open-Meteo](https://open-meteo.com/) (no API key).
 - **Refreshes every 5 minutes.** If a feed or the server can't be reached, the last good data stays on screen and a small note in the footer says what failed.

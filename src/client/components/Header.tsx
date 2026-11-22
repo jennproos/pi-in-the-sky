@@ -15,6 +15,12 @@ interface HeaderProps {
   onToday: () => void;
 }
 
+const VIEWS = [
+  ['week', 'Week'],
+  ['day', 'Day'],
+  ['month', 'Month'],
+] as const;
+
 export function Header(p: HeaderProps) {
   const clock = formatClock(p.now);
   return (
@@ -39,9 +45,9 @@ export function Header(p: HeaderProps) {
           Today
         </button>
         <div className="segmented" role="group" aria-label="View">
-          {(['week', 'day'] as const).map((v) => (
+          {VIEWS.map(([v, label]) => (
             <button key={v} type="button" aria-pressed={p.view === v} onClick={() => p.onViewChange(v)}>
-              {v === 'week' ? 'Week' : 'Day'}
+              {label}
             </button>
           ))}
         </div>

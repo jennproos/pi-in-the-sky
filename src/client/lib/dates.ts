@@ -1,7 +1,7 @@
-import { addDays, format, isSameDay, startOfDay, startOfWeek } from 'date-fns';
+import { addDays, addMonths, endOfMonth, endOfWeek, format, isSameDay, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
 import type { CalendarEvent } from '../../shared/types';
 
-export type View = 'week' | 'day';
+export type View = 'week' | 'day' | 'month';
 
 export function dayKey(d: Date): string {
   return format(d, 'yyyy-MM-dd');
@@ -12,8 +12,21 @@ export function weekDays(anchor: Date, weekStartsOn: 0 | 1): Date[] {
   return Array.from({ length: 7 }, (_, i) => addDays(first, i));
 }
 
+/** The weeks shown for the anchor's month: 4 to 6 rows of 7 days, padded with days from the months around it. */
+export function monthWeeks(anchor: Date, weekStartsOn: 0 | 1): Date[][] {
+  const first = startOfWeek(startOfMonth(anchor), { weekStartsOn });
+  const last = endOfWeek(endOfMonth(anchor), { weekStartsOn });
+  const weeks: Date[][] = [];
+  for (let d = first; d <= last; d = addDays(d, 7)) weeks.push(weekDays(d, weekStartsOn));
+  return weeks;
+}
+
 /** Local-time range [start, end) that the view displays. */
 export function visibleRange(view: View, anchor: Date, weekStartsOn: 0 | 1): { start: Date; end: Date } {
+  if (view === 'month') {
+    const weeks = monthWeeks(anchor, weekStartsOn);
+    return { start: weeks[0]![0]!, end: addDays(weeks.at(-1)![6]!, 1) };
+  }
   if (view === 'day') {
     const start = startOfDay(anchor);
     return { start, end: addDays(start, 1) };
@@ -22,12 +35,16 @@ export function visibleRange(view: View, anchor: Date, weekStartsOn: 0 | 1): { s
   return { start, end: addDays(start, 7) };
 }
 
-/** Range to fetch: always the whole week, so switching to day view needs no request. */
-export function fetchRange(anchor: Date, weekStartsOn: 0 | 1): { start: Date; end: Date } {
-  return visibleRange('week', anchor, weekStartsOn);
+/**
+ * Range to fetch. Day view fetches its whole week, so switching between week and day
+ * needs no request. Month view fetches the full grid (at most 42 days).
+ */
+export function fetchRange(view: View, anchor: Date, weekStartsOn: 0 | 1): { start: Date; end: Date } {
+  return visibleRange(view === 'month' ? 'month' : 'week', anchor, weekStartsOn);
 }
 
 export function step(view: View, anchor: Date, direction: 1 | -1): Date {
+  if (view === 'month') return addMonths(anchor, direction);
   return addDays(anchor, (view === 'week' ? 7 : 1) * direction);
 }
 
@@ -94,6 +111,7 @@ export function timeLabel(e: CalendarEvent, day: Date, compact = false): string 
 
 export function periodLabel(view: View, anchor: Date, weekStartsOn: 0 | 1): string {
   if (view === 'day') return format(anchor, 'EEEE, MMMM d');
+  if (view === 'month') return format(anchor, 'MMMM yyyy');
   const days = weekDays(anchor, weekStartsOn);
   const first = days[0]!;
   const last = days[6]!;
