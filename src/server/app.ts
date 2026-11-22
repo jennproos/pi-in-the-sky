@@ -1,11 +1,13 @@
 import { existsSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fastifyStatic from '@fastify/static';
 import Fastify, { type FastifyInstance } from 'fastify';
+import { z } from 'zod';
 import type { ClientSettings } from '../shared/types.js';
 import type { AppConfig } from './config.js';
 import { FeedStore, type FetchLike } from './ics/feeds.js';
+import { sortTodos, TodoStore } from './todos.js';
 import { WeatherService } from './weather.js';
 
 /** Largest range a single /api/events request may cover. */
@@ -15,6 +17,8 @@ export interface AppDeps {
   fetch?: FetchLike;
   /** Directory with the built client; served when it exists. */
   clientDir?: string;
+  /** Override where the to-do list is saved (tests). */
+  todoFile?: string;
   logger?: boolean;
 }
 
@@ -38,6 +42,12 @@ export async function buildApp(config: AppConfig, deps: AppDeps = {}): Promise<F
     ...(deps.fetch ? { fetch: deps.fetch } : {}),
   });
 
+  const todos = new TodoStore({
+    file: deps.todoFile ?? resolve(config.dataDir, 'todos.json'),
+    timeZone: config.timeZone,
+    log: (msg) => app.log.warn(msg),
+  });
+
   app.get('/api/health', async () => ({ ok: true }));
 
   app.get('/api/settings', async (): Promise<ClientSettings> => ({
@@ -47,7 +57,56 @@ export async function buildApp(config: AppConfig, deps: AppDeps = {}): Promise<F
     dayEndHour: config.dayEndHour,
     refreshMinutes: config.refreshMinutes,
     feeds: config.feeds.map(({ name, color }) => ({ name, color })),
+    people: config.people,
   }));
+
+  // To-do list ---------------------------------------------------------------
+
+  const canonicalName = new Map(config.people.map((p) => [p.name.toLowerCase(), p.name]));
+  const todoText = z.string().trim().min(1, 'Type something first').max(200, 'Keep it under 200 characters');
+  const assignees = z
+    .array(z.string())
+    .max(8)
+    .transform((names, ctx) => {
+      const out: string[] = [];
+      for (const n of names) {
+        const name = canonicalName.get(n.trim().toLowerCase());
+        if (!name) {
+          ctx.addIssue({ code: 'custom', message: `Unknown person: ${n}` });
+          return z.NEVER;
+        }
+        if (!out.includes(name)) out.push(name);
+      }
+      // Keep config order so "both" always reads the same way.
+      return config.people.map((p) => p.name).filter((p) => out.includes(p));
+    });
+  const newTodo = z.object({ text: todoText, assignees: assignees.default([]) });
+  const todoPatch = z
+    .object({ text: todoText.optional(), assignees: assignees.optional(), done: z.boolean().optional() })
+    .refine((p) => Object.keys(p).length > 0, 'Nothing to change');
+
+  const badRequest = (err: z.ZodError) => ({ error: err.issues.map((i) => i.message).join('; ') });
+
+  app.get('/api/todos', async () => ({ todos: sortTodos(await todos.list()) }));
+
+  app.post('/api/todos', async (req, reply) => {
+    const parsed = newTodo.safeParse(req.body);
+    if (!parsed.success) return reply.code(400).send(badRequest(parsed.error));
+    return reply.code(201).send(await todos.add(parsed.data));
+  });
+
+  app.patch<{ Params: { id: string } }>('/api/todos/:id', async (req, reply) => {
+    const parsed = todoPatch.safeParse(req.body);
+    if (!parsed.success) return reply.code(400).send(badRequest(parsed.error));
+    const patch = Object.fromEntries(Object.entries(parsed.data).filter(([, v]) => v !== undefined));
+    const updated = await todos.update(req.params.id, patch);
+    return updated ?? reply.code(404).send({ error: 'That item no longer exists' });
+  });
+
+  app.delete<{ Params: { id: string } }>('/api/todos/:id', async (req, reply) => {
+    const removed = await todos.remove(req.params.id);
+    return removed ? reply.code(204).send() : reply.code(404).send({ error: 'That item no longer exists' });
+  });
 
   app.get<{ Querystring: { start?: string; end?: string } }>('/api/events', async (req, reply) => {
     const start = new Date(req.query.start ?? '');

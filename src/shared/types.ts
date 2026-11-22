@@ -56,4 +56,28 @@ export interface ClientSettings {
   dayEndHour: number;
   refreshMinutes: number;
   feeds: { name: string; color: string }[];
+  people: Person[];
 }
+
+export interface Person {
+  name: string;
+  color: string;
+}
+
+export interface Todo {
+  id: string;
+  text: string;
+  /** Names of the people this is assigned to; empty means anyone. */
+  assignees: string[];
+  done: boolean;
+  /** ISO time it was ticked off. Done items disappear after midnight. */
+  doneAt?: string;
+  createdAt: string;
+}
+
+export interface NewTodo {
+  text: string;
+  assignees: string[];
+}
+
+export type TodoPatch = Partial<Pick<Todo, 'text' | 'assignees' | 'done'>>;

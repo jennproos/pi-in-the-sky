@@ -32,6 +32,14 @@ export const configSchema = z
         }),
       )
       .min(1, 'add at least one feed'),
+    /** People to-do items can be assigned to. */
+    people: z
+      .array(z.object({ name: z.string().trim().min(1).max(30), color: hexColor }))
+      .max(8)
+      .default([])
+      .refine((ps) => new Set(ps.map((p) => p.name.toLowerCase())).size === ps.length, 'people names must be unique'),
+    /** Where the to-do list is saved. Relative paths are from the working directory. */
+    dataDir: z.string().default('data'),
   })
   .refine((c) => c.dayEndHour > c.dayStartHour, {
     message: 'dayEndHour must be greater than dayStartHour',
