@@ -319,17 +319,6 @@ button:disabled {
   padding-bottom: 10px;
 }
 
-.day-empty {
-  padding: 8px 8px;
-  font-size: var(--text-sm);
-  color: var(--bark);
-  opacity: 0.7;
-}
-
-.is-past .day-empty {
-  visibility: hidden;
-}
-
 .more {
   position: absolute;
   left: 10px;

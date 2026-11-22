@@ -61,7 +61,6 @@ export function DayColumn({ day, now, events, onOpen }: Props) {
           {events.map((e, i) => (
             <EventCard key={e.id} event={e} day={day} now={now} compactTime hidden={i >= fit} className={i >= fit ? 'is-overflow' : ''} />
           ))}
-          {events.length === 0 && <div className="day-empty">Nothing planned</div>}
         </div>
         {hiddenCount > 0 && (
           <button type="button" className="more" onClick={onOpen}>
