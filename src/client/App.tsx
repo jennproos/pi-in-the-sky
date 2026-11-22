@@ -122,7 +122,7 @@ function Calendar({ settings }: { settings: ClientSettings }) {
             )}
           </div>
         </div>
-        <TodoPanel key={resetCount} people={settings.people} state={todos} />
+        <TodoPanel key={resetCount} people={settings.people} state={todos} keyboard="onscreen" />
       </main>
       <footer className="footer">
         <ul className="legend">

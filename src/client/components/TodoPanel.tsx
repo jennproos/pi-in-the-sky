@@ -2,16 +2,20 @@ import { useMemo, useState, type CSSProperties } from 'react';
 import type { Person, Todo } from '../../shared/types';
 import type { TodosState } from '../hooks/useTodos';
 import { initials, visibleFor } from '../lib/people';
+import { TodoEditor } from './TodoEditor';
 
 interface Props {
   people: Person[];
   state: TodosState;
-  onAdd?: (assignTo: string | null) => void;
-  onEdit?: (todo: Todo) => void;
+  keyboard: 'onscreen' | 'native';
+  className?: string;
 }
 
-export function TodoPanel({ people, state, onAdd, onEdit }: Props) {
+type Editing = { mode: 'add'; assignTo: string | null } | { mode: 'edit'; todo: Todo } | null;
+
+export function TodoPanel({ people, state, keyboard, className = '' }: Props) {
   const [filter, setFilter] = useState<string | null>(null);
+  const [editing, setEditing] = useState<Editing>(null);
   const labels = useMemo(() => initials(people), [people]);
   const colors = useMemo(() => new Map(people.map((p) => [p.name, p.color])), [people]);
 
@@ -19,7 +23,7 @@ export function TodoPanel({ people, state, onAdd, onEdit }: Props) {
   const open = shown.filter((t) => !t.done).length;
 
   return (
-    <aside className="todo-panel" aria-label="To-do list">
+    <aside className={`todo-panel ${className}`} aria-label="To-do list">
       <div className="todo-head">
         <h2>To do</h2>
         {state.loaded && <span className="todo-count">{open === 0 ? 'All done' : `${open} left`}</span>}
@@ -60,7 +64,13 @@ export function TodoPanel({ people, state, onAdd, onEdit }: Props) {
                 {t.done && <path d="M9.5 16.5l4.5 4.5 8.5-9" />}
               </svg>
             </button>
-            <button type="button" className="todo-body" onClick={() => onEdit?.(t)} disabled={!onEdit}>
+            <button
+              type="button"
+              className="todo-body"
+              onClick={() => setEditing({ mode: 'edit', todo: t })}
+              disabled={t.id.startsWith('pending-')}
+              aria-label={`Edit: ${t.text}`}
+            >
               <span className="todo-text">{t.text}</span>
               {t.assignees.length > 0 && (
                 <span className="todo-who">
@@ -81,13 +91,38 @@ export function TodoPanel({ people, state, onAdd, onEdit }: Props) {
 
       {state.error && <p className="todo-error">{state.error}</p>}
 
-      {onAdd && (
-        <button type="button" className="todo-add" onClick={() => onAdd(filter)}>
-          <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          Add item
-        </button>
+      <button type="button" className="todo-add" onClick={() => setEditing({ mode: 'add', assignTo: filter })}>
+        <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        Add item
+      </button>
+
+      {editing && (
+        <TodoEditor
+          key={editing.mode === 'edit' ? editing.todo.id : 'new'}
+          mode={editing.mode}
+          people={people}
+          keyboard={keyboard}
+          initial={
+            editing.mode === 'edit'
+              ? { text: editing.todo.text, assignees: editing.todo.assignees }
+              : { text: '', assignees: editing.assignTo ? [editing.assignTo] : [] }
+          }
+          onCancel={() => setEditing(null)}
+          onSave={(t) => {
+            setEditing(null);
+            void (editing.mode === 'edit' ? state.update(editing.todo.id, t) : state.add(t));
+          }}
+          {...(editing.mode === 'edit'
+            ? {
+                onDelete: () => {
+                  setEditing(null);
+                  void state.remove(editing.todo.id);
+                },
+              }
+            : {})}
+        />
       )}
     </aside>
   );
