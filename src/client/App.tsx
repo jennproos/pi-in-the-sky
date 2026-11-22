@@ -4,8 +4,10 @@ import type { ClientSettings } from '../shared/types';
 import { DayView } from './components/DayView';
 import { Header } from './components/Header';
 import { RefreshStatus } from './components/RefreshStatus';
+import { ThemePicker } from './components/ThemePicker';
 import { TodoPanel } from './components/TodoPanel';
 import { WeekView } from './components/WeekView';
+import { useDisplay } from './hooks/useDisplay';
 import { useEvents } from './hooks/useEvents';
 import { useIdleReset } from './hooks/useIdleReset';
 import { useNow } from './hooks/useNow';
@@ -31,6 +33,9 @@ function Calendar({ settings }: { settings: ClientSettings }) {
   const now = useNow();
   const weather = useWeather();
   const todos = useTodos();
+  const [pickingTheme, setPickingTheme] = useState(false);
+  const display = useDisplay(settings, now, pickingTheme);
+  const closeThemePicker = useCallback(() => setPickingTheme(false), []);
   useReloadOnDeploy();
   /** Bumped by the idle reset to put the to-do panel back to its default state. */
   const [resetCount, setResetCount] = useState(0);
@@ -50,7 +55,11 @@ function Calendar({ settings }: { settings: ClientSettings }) {
   const range = useMemo(() => fetchRange(anchor, ws), [anchor, ws]);
   const events = useEvents(range.start, range.end, settings.refreshMinutes * 60_000);
   const days = useMemo(() => weekDays(anchor, ws), [anchor, ws]);
-  const allEvents = events.data?.events ?? [];
+  const rawEvents = events.data?.events;
+  const allEvents = useMemo(
+    () => (rawEvents ?? []).map((e) => ({ ...e, color: display.feedColors.get(e.feed) ?? e.color })),
+    [rawEvents, display.feedColors],
+  );
 
   const go = useCallback(
     (dir: 1 | -1) => {
@@ -83,6 +92,7 @@ function Calendar({ settings }: { settings: ClientSettings }) {
       setView('week');
       setAnchor(new Date());
       setResetCount((n) => n + 1);
+      setPickingTheme(false);
     },
     dayKey(now),
   );
@@ -124,7 +134,7 @@ function Calendar({ settings }: { settings: ClientSettings }) {
             )}
           </div>
         </div>
-        <TodoPanel key={resetCount} people={settings.people} state={todos} keyboard="onscreen" />
+        <TodoPanel key={resetCount} people={display.people} state={todos} keyboard="onscreen" />
       </main>
       <footer className="footer">
         <ul className="legend">
@@ -132,21 +142,48 @@ function Calendar({ settings }: { settings: ClientSettings }) {
             <li
               key={f.name}
               className={events.failedFeeds.some((x) => x.name === f.name) ? 'is-failed' : undefined}
-              style={{ '--feed': f.color } as CSSProperties}
+              style={{ '--feed': display.feedColors.get(f.name) ?? f.color } as CSSProperties}
             >
               <span className="swatch" />
               {f.name}
             </li>
           ))}
         </ul>
-        <RefreshStatus
-          now={now}
-          error={events.error}
-          lastSuccess={events.lastSuccess}
-          failedFeeds={events.failedFeeds}
-          onRetry={events.refresh}
-        />
+        <div className="footer-end">
+          <RefreshStatus
+            now={now}
+            error={events.error}
+            lastSuccess={events.lastSuccess}
+            failedFeeds={events.failedFeeds}
+            onRetry={events.refresh}
+          />
+          <button type="button" className="icon-button" onClick={() => setPickingTheme(true)} aria-label="Theme">
+            <PaletteIcon />
+          </button>
+        </div>
       </footer>
+      {pickingTheme && (
+        <ThemePicker
+          prefs={display.prefs}
+          nightHours={settings.nightHours}
+          feedColors={settings.feeds.map((f) => f.color)}
+          isNight={display.isNight}
+          error={display.error}
+          onChange={display.change}
+          onClose={closeThemePicker}
+        />
+      )}
     </div>
+  );
+}
+
+function PaletteIcon() {
+  return (
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.8 0-.5-.2-.9-.5-1.2-.3-.3-.5-.8-.5-1.2 0-1 .8-1.8 1.8-1.8H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8z" />
+      <circle cx="7.5" cy="11" r="1.2" fill="currentColor" />
+      <circle cx="10.5" cy="7" r="1.2" fill="currentColor" />
+      <circle cx="15.5" cy="7.5" r="1.2" fill="currentColor" />
+    </svg>
   );
 }

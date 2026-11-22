@@ -75,7 +75,7 @@ export function TodoPanel({ people, state, keyboard, className = '' }: Props) {
               {t.assignees.length > 0 && (
                 <span className="todo-who">
                   {t.assignees.map((name) => (
-                    <span key={name} className="badge" style={{ '--person': colors.get(name) ?? '#6b6256' } as CSSProperties} title={name}>
+                    <span key={name} className="badge" style={{ '--person': colors.get(name) ?? 'var(--bark)' } as CSSProperties} title={name}>
                       {labels.get(name) ?? name.charAt(0)}
                     </span>
                   ))}

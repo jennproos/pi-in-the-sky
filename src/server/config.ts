@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { z } from 'zod';
+import { DEFAULT_THEME, THEME_NAMES } from '../shared/themes.js';
 import { isValidTimeZone, systemTimeZone } from './ics/timezone.js';
 
 const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'must be a hex color like #B5651D');
@@ -38,6 +39,20 @@ export const configSchema = z
       .max(8)
       .default([])
       .refine((ps) => new Set(ps.map((p) => p.name.toLowerCase())).size === ps.length, 'people names must be unique'),
+    /** Starting color theme. It can be changed from the wall, which remembers the choice. */
+    theme: z.enum(THEME_NAMES).default(DEFAULT_THEME),
+    /**
+     * Switch to the dark night theme between these hours (wrapping past midnight), so the
+     * wall doesn't light up the room. It can be turned off from the wall, or here with false.
+     */
+    nightMode: z
+      .union([
+        z.literal(false),
+        z
+          .object({ from: z.number().int().min(0).max(23), to: z.number().int().min(0).max(23) })
+          .refine((n) => n.from !== n.to, 'nightMode from and to must differ'),
+      ])
+      .default({ from: 21, to: 6 }),
     /** Where the to-do list is saved. Relative paths are from the working directory. */
     dataDir: z.string().default('data'),
   })

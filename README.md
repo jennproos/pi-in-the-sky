@@ -48,6 +48,8 @@ Useful while developing: `http://localhost:5173/?view=day&date=2026-11-26` opens
   "dayStartHour": 7,               // hours shown in day view
   "dayEndHour": 21,
   "refreshMinutes": 5,
+  "theme": "autumn",               // starting theme; change it on the wall with the palette button
+  "nightMode": { "from": 21, "to": 6 }, // dark theme between these hours, or false to turn off
   "people": [                      // who to-do items can be assigned to (optional)
     { "name": "Your name", "color": "#7B4B6A" },
     { "name": "Cole", "color": "#4F6D73" }
@@ -69,14 +71,16 @@ The server checks the config at startup and exits with a clear message if someth
 
 These links work like passwords. Anyone with one can read that calendar, so keep `config.json` private.
 
-**Colors that suit the palette:** rust `#A0522D`, olive `#66753A`, slate teal `#4F6D73`, plum `#7B4B6A`, ochre `#B07D2B`, brick `#8E3B2F`. Pick fairly deep colors: all-day events use the feed color as a background with light text.
+**Colors that suit the autumn palette:** rust `#A0522D`, olive `#66753A`, slate teal `#4F6D73`, plum `#7B4B6A`, ochre `#B07D2B`, brick `#8E3B2F`. Pick fairly deep colors: all-day events use the feed color as a background with light text.
+
+**Themes:** tap the palette button in the bottom-right corner of the wall to pick a theme: `autumn`, `baking`, `camping`, `birds`, `fruit`, `garden`, `bouquets`, `woodland` or `night`. The wall remembers your pick in `data/display.json`, so `theme` in config is only the starting choice. Night mode switches to the dim `night` theme during the `nightMode` hours, and can be turned off from the same screen. Calendars take the theme's colors in the order they're listed in `feeds`, and to-do `people` take the colors after those, so a person never matches a calendar. Autumn uses the colors from config, and Night keeps your chosen theme's calendar and people colors, dimmed a little. Palettes live in `src/shared/themes.ts`, and a test checks each one for readable contrast.
 
 **Time zones:** the browser shows events in its own local time zone. On the Pi, the browser and server share the system zone, so set it once (`sudo raspi-config` → Localisation Options → Timezone). `timeZone` in config only controls how the server places floating times and all-day events.
 
 ### Project layout
 
 ```
-src/shared/       types used by both server and client
+src/shared/       types and color themes used by both server and client
 src/server/       Fastify app, config loading, weather
 src/server/ics/   ICS parsing (ical.js), time zones, feed fetching and merging
 src/client/       React app: components/, hooks/, lib/ (date and layout helpers), styles/

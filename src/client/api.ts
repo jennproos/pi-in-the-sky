@@ -1,4 +1,4 @@
-import type { ClientSettings, EventsResponse, NewTodo, Todo, TodoPatch, Weather } from '../shared/types';
+import type { ClientSettings, DisplayPrefs, EventsResponse, NewTodo, Todo, TodoPatch, Weather } from '../shared/types';
 
 async function getJson<T>(url: string, timeoutMs = 20_000): Promise<T> {
   const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
@@ -26,6 +26,7 @@ export const api = {
   updateTodo: (id: string, patch: TodoPatch) => send<Todo>('PATCH', `/api/todos/${encodeURIComponent(id)}`, patch),
   removeTodo: (id: string) => send<void>('DELETE', `/api/todos/${encodeURIComponent(id)}`),
   settings: () => getJson<ClientSettings>('/api/settings'),
+  updateDisplay: (patch: Partial<DisplayPrefs>) => send<DisplayPrefs>('PATCH', '/api/display', patch),
   weather: () => getJson<Weather>('/api/weather'),
   events: (start: Date, end: Date) =>
     getJson<EventsResponse>(

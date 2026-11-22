@@ -17,6 +17,18 @@ describe('config', () => {
     expect(cfg.port).toBe(3000);
     expect(cfg.refreshMinutes).toBe(5);
     expect(cfg.weekStartsOn).toBe(0);
+    expect(cfg.theme).toBe('autumn');
+    expect(cfg.nightMode).toEqual({ from: 21, to: 6 });
+  });
+
+  it('validates theme and night mode', () => {
+    const base = {
+      location: { latitude: 1, longitude: 2 },
+      feeds: [{ name: 'A', color: '#112233', url: 'https://x.test/a.ics' }],
+    };
+    expect(parseConfig({ ...base, theme: 'garden', nightMode: false })).toMatchObject({ theme: 'garden', nightMode: false });
+    expect(() => parseConfig({ ...base, theme: 'neon' })).toThrow(/theme/);
+    expect(() => parseConfig({ ...base, nightMode: { from: 22, to: 22 } })).toThrow(/must differ/);
   });
 
   it('rejects bad colors and missing feeds with a readable message', () => {

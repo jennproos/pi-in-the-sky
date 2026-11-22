@@ -35,7 +35,8 @@ const fetch: FetchLike = async (url) =>
 
 const clientDir = mkdtempSync(join(tmpdir(), 'pits-client-'));
 writeFileSync(join(clientDir, 'index.html'), '<!doctype html><title>cal</title>');
-const app = await buildApp(config, { fetch, clientDir });
+const displayFile = join(mkdtempSync(join(tmpdir(), 'pits-display-')), 'display.json');
+const app = await buildApp(config, { fetch, clientDir, displayFile });
 afterAll(() => app.close());
 
 describe('API', () => {
@@ -49,6 +50,26 @@ describe('API', () => {
     const res = await app.inject('/api/settings');
     expect(res.json()).toMatchObject({ weekStartsOn: 0, refreshMinutes: 5, feeds: [{ name: 'School', color: '#6B8E5A' }] });
     expect(res.body).not.toContain('x.test');
+  });
+
+  it('saves display choices and returns them with the settings', async () => {
+    expect((await app.inject('/api/settings')).json()).toMatchObject({
+      display: { theme: 'autumn', autoNight: true },
+      nightHours: { from: 21, to: 6 },
+    });
+    const res = await app.inject({ method: 'PATCH', url: '/api/display', payload: { theme: 'woodland' } });
+    expect(res.json()).toEqual({ theme: 'woodland', autoNight: true });
+    await app.inject({ method: 'PATCH', url: '/api/display', payload: { autoNight: false } });
+    expect((await app.inject('/api/settings')).json().display).toEqual({ theme: 'woodland', autoNight: false });
+    // A fresh server picks up the saved choice.
+    const again = await buildApp(config, { fetch, clientDir, displayFile });
+    expect((await again.inject('/api/settings')).json().display).toEqual({ theme: 'woodland', autoNight: false });
+    await again.close();
+  });
+
+  it('PATCH /api/display rejects unknown themes and empty changes', async () => {
+    expect((await app.inject({ method: 'PATCH', url: '/api/display', payload: { theme: 'neon' } })).statusCode).toBe(400);
+    expect((await app.inject({ method: 'PATCH', url: '/api/display', payload: {} })).statusCode).toBe(400);
   });
 
   it('GET /api/events returns merged events for the range', async () => {

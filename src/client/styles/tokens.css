@@ -1,13 +1,11 @@
 :root {
-  /* Muted autumn palette */
-  --lichen: #d9d6c7; /* page */
-  --birch: #ece9df; /* day columns, cards */
-  --umber: #2f2a24; /* ink */
-  --bark: #6b6256; /* secondary ink */
-  --ochre: #b8862f; /* today, used nowhere else */
-  --moss: #5f6b4e; /* controls */
-  --line: #c4bfae;
-  --warn: #a5561f;
+  /*
+   * Colors are set on <html> by the active theme (src/shared/themes.ts):
+   * --lichen page, --birch day columns and cards, --umber ink, --bark secondary ink,
+   * --ochre today (used nowhere else), --moss controls, --on-moss text on moss,
+   * --on-fill text on feed/person/warn fills, --field inputs and keys,
+   * --scrim behind sheets, --line, --warn.
+   */
 
   --font-ui: 'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible', system-ui, sans-serif;
   --font-numeral: 'Fraunces Variable', Georgia, serif;

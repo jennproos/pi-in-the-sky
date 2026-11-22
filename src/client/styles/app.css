@@ -124,7 +124,7 @@ button:disabled {
 
 .icon-button:active,
 .text-button:active {
-  background: rgb(95 107 78 / 0.15);
+  background: color-mix(in srgb, var(--moss) 15%, transparent);
 }
 
 .text-button {
@@ -154,7 +154,7 @@ button:disabled {
 
 .segmented button[aria-pressed='true'] {
   background: var(--moss);
-  color: var(--birch);
+  color: var(--on-moss);
 }
 
 .header-weather {
@@ -344,9 +344,10 @@ button:disabled {
 }
 
 .event.is-allday {
-  background: var(--feed);
+  /* Dark themes dim the fill so it doesn't glow. */
+  background: color-mix(in oklab, var(--feed) var(--fill-strength), var(--birch));
   border-left: 0;
-  color: #fbf8f1;
+  color: var(--on-fill);
   padding: 8px 10px;
 }
 
@@ -666,7 +667,7 @@ button:disabled {
 
 .todo-filter button[aria-pressed='true'] {
   background: var(--moss);
-  color: var(--birch);
+  color: var(--on-moss);
 }
 
 .person-dot {
@@ -770,7 +771,7 @@ button:disabled {
   padding: 0 6px;
   border-radius: 18px;
   background: var(--person);
-  color: #fbf8f1;
+  color: var(--on-fill);
   font-size: 18px;
   font-weight: 700;
 }
@@ -824,7 +825,7 @@ button:disabled {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: rgb(47 42 36 / 0.45);
+  background: var(--scrim);
   animation: fade-in 160ms ease-out;
 }
 
@@ -864,7 +865,7 @@ button:disabled {
   padding: 14px 20px;
   border: 3px solid var(--moss);
   border-radius: var(--radius-card);
-  background: #fbf9f4;
+  background: var(--field);
   font: inherit;
   font-size: var(--text-lg);
   font-weight: 600;
@@ -927,7 +928,7 @@ button:disabled {
 
 .person-toggle[aria-pressed='true'] {
   background: var(--person);
-  color: #fbf8f1;
+  color: var(--on-fill);
 }
 
 .sheet-hint {
@@ -956,7 +957,7 @@ button:disabled {
 .sheet-button.is-primary {
   background: var(--moss);
   border-color: var(--moss);
-  color: var(--birch);
+  color: var(--on-moss);
 }
 
 .sheet-button.is-danger {
@@ -967,7 +968,7 @@ button:disabled {
 .sheet-button.is-danger.is-confirming {
   background: var(--warn);
   border-color: var(--warn);
-  color: #fbf8f1;
+  color: var(--on-fill);
 }
 
 /* On-screen keyboard */
@@ -992,7 +993,7 @@ button:disabled {
   max-width: 116px;
   height: 70px;
   border-radius: 12px;
-  background: #fbf9f4;
+  background: var(--field);
   box-shadow: 0 2px 0 var(--line);
   font-size: 30px;
   font-weight: 600;
@@ -1014,7 +1015,7 @@ button:disabled {
 
 .osk-key.is-on {
   background: var(--moss);
-  color: var(--birch);
+  color: var(--on-moss);
 }
 
 .osk-key.is-locked {
@@ -1032,11 +1033,128 @@ button:disabled {
   flex: 2 1 0;
   max-width: 260px;
   background: var(--moss);
-  color: var(--birch);
+  color: var(--on-moss);
   font-size: var(--text-md);
   font-weight: 700;
 }
 
 .osk-enter:disabled {
   opacity: 0.4;
+}
+
+/* Theme picker ---------------------------------------------------------- */
+
+.footer-end {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.theme-sheet {
+  width: min(1180px, 100%);
+}
+
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* Tiles carry their own theme's tokens (set inline), so these colors are that theme's. */
+.theme-tile {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 12px 20px 12px 12px;
+  border-radius: var(--radius-col);
+  background: var(--lichen);
+  color: var(--umber);
+  border: 3px solid var(--line);
+  text-align: left;
+}
+
+.theme-tile[aria-pressed='true'] {
+  outline: 4px solid var(--umber);
+  outline-offset: 3px;
+  border-color: var(--umber);
+}
+
+.theme-preview {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.theme-preview-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 72px;
+  padding: 8px;
+  border-radius: var(--radius-card);
+  background: var(--birch);
+}
+
+.theme-preview-today {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--ochre);
+}
+
+.theme-preview-event {
+  height: 8px;
+  border-radius: 3px;
+  background: var(--feed);
+}
+
+.theme-preview-control {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--moss);
+}
+
+.theme-name {
+  font-size: var(--text-md);
+  font-weight: 700;
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 8px;
+  font-weight: 600;
+  color: var(--umber);
+}
+
+.theme-switch {
+  position: relative;
+  width: 72px;
+  height: 40px;
+  border-radius: 20px;
+  background: var(--line);
+  transition: background-color 150ms;
+}
+
+.theme-switch::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bark);
+  transition: transform 150ms;
+}
+
+.theme-toggle[aria-checked='true'] .theme-switch {
+  background: var(--moss);
+}
+
+.theme-toggle[aria-checked='true'] .theme-switch::after {
+  background: var(--on-moss);
+  transform: translateX(32px);
 }

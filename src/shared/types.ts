@@ -2,6 +2,8 @@
  * Types shared between the server and the browser client.
  */
 
+import type { ThemeName } from './themes.js';
+
 export interface CalendarEvent {
   /** Stable id: feed name + UID + occurrence start. */
   id: string;
@@ -57,6 +59,16 @@ export interface ClientSettings {
   refreshMinutes: number;
   feeds: { name: string; color: string }[];
   people: Person[];
+  display: DisplayPrefs;
+  /** Hours the night theme is used when `display.autoNight` is on; null if disabled in config. */
+  nightHours: { from: number; to: number } | null;
+}
+
+/** Display choices made on the wall, saved on the server. */
+export interface DisplayPrefs {
+  theme: ThemeName;
+  /** Use the night theme during `nightHours`. */
+  autoNight: boolean;
 }
 
 export interface Person {

@@ -5,8 +5,10 @@ import { fileURLToPath } from 'node:url';
 import fastifyStatic from '@fastify/static';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { THEME_NAMES } from '../shared/themes.js';
 import type { ClientSettings } from '../shared/types.js';
 import type { AppConfig } from './config.js';
+import { DisplayStore } from './display.js';
 import { FeedStore, type FetchLike } from './ics/feeds.js';
 import { sortTodos, TodoStore } from './todos.js';
 import { WeatherService } from './weather.js';
@@ -20,6 +22,8 @@ export interface AppDeps {
   clientDir?: string;
   /** Override where the to-do list is saved (tests). */
   todoFile?: string;
+  /** Override where display choices are saved (tests). */
+  displayFile?: string;
   logger?: boolean;
 }
 
@@ -49,6 +53,11 @@ export async function buildApp(config: AppConfig, deps: AppDeps = {}): Promise<F
     log: (msg) => app.log.warn(msg),
   });
 
+  const display = new DisplayStore(deps.displayFile ?? resolve(config.dataDir, 'display.json'), {
+    theme: config.theme,
+    autoNight: config.nightMode !== false,
+  });
+
   // Identifies the client build being served, so open screens can reload after a deploy.
   // deploy/deploy.sh computes the same value to confirm the new version is live.
   const clientDir = deps.clientDir ?? defaultClientDir();
@@ -68,7 +77,20 @@ export async function buildApp(config: AppConfig, deps: AppDeps = {}): Promise<F
     refreshMinutes: config.refreshMinutes,
     feeds: config.feeds.map(({ name, color }) => ({ name, color })),
     people: config.people,
+    display: await display.get(),
+    nightHours: config.nightMode || null,
   }));
+
+  const displayPatch = z
+    .object({ theme: z.enum(THEME_NAMES).optional(), autoNight: z.boolean().optional() })
+    .refine((p) => p.theme !== undefined || p.autoNight !== undefined, 'Nothing to change');
+
+  app.patch('/api/display', async (req, reply) => {
+    const parsed = displayPatch.safeParse(req.body);
+    if (!parsed.success) return reply.code(400).send({ error: parsed.error.issues.map((i) => i.message).join('; ') });
+    const { theme, autoNight } = parsed.data;
+    return display.update({ ...(theme !== undefined && { theme }), ...(autoNight !== undefined && { autoNight }) });
+  });
 
   // To-do list ---------------------------------------------------------------
 
