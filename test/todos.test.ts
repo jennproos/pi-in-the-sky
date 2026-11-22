@@ -88,7 +88,7 @@ describe('/api/todos', () => {
     feeds: [{ name: 'A', color: '#112233', url: 'https://x.test/a.ics' }],
     people: [
       { name: 'Jordan', color: '#A0522D' },
-      { name: 'Cole', color: '#4F6D73' },
+      { name: 'Cole' },
     ],
   });
   const file = tmp();
@@ -97,7 +97,8 @@ describe('/api/todos', () => {
 
   it('exposes people in settings', async () => {
     const app = await appP;
-    expect((await app.inject('/api/settings')).json().people).toEqual(config.people);
+    // Only colors set in config are sent; the client fills in the theme's for the rest.
+    expect((await app.inject('/api/settings')).json().people).toEqual([{ name: 'Jordan', color: '#A0522D' }, { name: 'Cole' }]);
   });
 
   it('creates items, normalising and ordering assignees', async () => {

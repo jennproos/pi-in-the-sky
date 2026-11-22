@@ -75,8 +75,8 @@ export async function buildApp(config: AppConfig, deps: AppDeps = {}): Promise<F
     dayStartHour: config.dayStartHour,
     dayEndHour: config.dayEndHour,
     refreshMinutes: config.refreshMinutes,
-    feeds: config.feeds.map(({ name, color }) => ({ name, color })),
-    people: config.people,
+    feeds: config.feeds.map(({ name, color, customColor }) => ({ name, ...(customColor && { color }) })),
+    people: config.people.map(({ name, color, customColor }) => ({ name, ...(customColor && { color }) })),
     display: await display.get(),
     nightHours: config.nightMode || null,
   }));

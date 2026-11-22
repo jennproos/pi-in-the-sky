@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { z } from 'zod';
-import { DEFAULT_THEME, THEME_NAMES } from '../shared/themes.js';
+import { DEFAULT_THEME, feedColors, personColors, THEME_NAMES } from '../shared/themes.js';
 import { isValidTimeZone, systemTimeZone } from './ics/timezone.js';
 
 const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'must be a hex color like #B5651D');
@@ -28,14 +28,15 @@ export const configSchema = z
       .array(
         z.object({
           name: z.string().min(1),
-          color: hexColor,
+          /** Optional; overrides the theme's color for this calendar in every theme. */
+          color: hexColor.optional(),
           url: z.string().regex(/^(https?|webcals?):\/\/\S+$/i, 'must be an http(s) or webcal URL'),
         }),
       )
       .min(1, 'add at least one feed'),
     /** People to-do items can be assigned to. */
     people: z
-      .array(z.object({ name: z.string().trim().min(1).max(30), color: hexColor }))
+      .array(z.object({ name: z.string().trim().min(1).max(30), color: hexColor.optional() }))
       .max(8)
       .default([])
       .refine((ps) => new Set(ps.map((p) => p.name.toLowerCase())).size === ps.length, 'people names must be unique'),
@@ -61,15 +62,35 @@ export const configSchema = z
     path: ['dayEndHour'],
   });
 
-export type AppConfig = z.infer<typeof configSchema>;
-export type FeedConfig = AppConfig['feeds'][number];
+type RawConfig = z.infer<typeof configSchema>;
+
+/**
+ * Config with every feed and person given a color: theirs from config, or Autumn's.
+ * `customColor` records whether it came from config, so themes know what not to change.
+ */
+export type AppConfig = Omit<RawConfig, 'feeds' | 'people'> & {
+  feeds: (RawConfig['feeds'][number] & { color: string; customColor: boolean })[];
+  people: { name: string; color: string; customColor: boolean }[];
+};
+/** What fetching a feed needs: its name, resolved color and URL. */
+export type FeedConfig = Pick<AppConfig['feeds'][number], 'name' | 'color' | 'url'>;
+
+function withColors(c: RawConfig): AppConfig {
+  const feeds = feedColors('autumn', c.feeds.map((f) => f.color));
+  const people = personColors('autumn', c.feeds.length, c.people.map((p) => p.color));
+  return {
+    ...c,
+    feeds: c.feeds.map((f, i) => ({ ...f, color: feeds[i]!, customColor: f.color !== undefined })),
+    people: c.people.map((p, i) => ({ ...p, color: people[i]!, customColor: p.color !== undefined })),
+  };
+}
 
 export function parseConfig(raw: unknown): AppConfig {
   const result = configSchema.safeParse(raw);
   if (!result.success) {
     throw new Error(`Invalid config:\n${z.prettifyError(result.error)}`);
   }
-  return result.data;
+  return withColors(result.data);
 }
 
 export function loadConfig(path = process.env.CONFIG_PATH ?? 'config.json'): AppConfig {

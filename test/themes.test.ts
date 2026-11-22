@@ -32,21 +32,26 @@ describe('themes', () => {
     expect(new Set(list).size).toBe(list.length);
   });
 
-  it('gives feeds theme colors in config order, falling back to config', () => {
-    const config = ['#111111', '#222222', '#333333', '#444444', '#555555', '#666666'];
-    expect(feedColors('autumn', config)).toEqual(config);
-    expect(feedColors('night', config)).toEqual(config);
-    expect(feedColors('fruit', config)).toEqual(['#ae4036', '#706f81', '#816e3f', '#4f5945', '#946560', '#666666']);
+  it('gives feeds theme colors in config order, repeating if there are more', () => {
+    const none = Array<undefined>(6).fill(undefined);
+    expect(feedColors('fruit', none)).toEqual(['#ae4036', '#706f81', '#816e3f', '#4f5945', '#946560', '#ae4036']);
+    expect(feedColors('autumn', none.slice(0, 2))).toEqual(['#a0522d', '#66753a']);
+    // Night has no colors of its own and uses Autumn's.
+    expect(feedColors('night', none.slice(0, 2))).toEqual(['#a0522d', '#66753a']);
+  });
+
+  it('lets a color from config override the theme in every theme', () => {
+    expect(feedColors('fruit', [undefined, '#123456'])).toEqual(['#ae4036', '#123456']);
+    expect(feedColors('autumn', ['#123456'])).toEqual(['#123456']);
   });
 
   it('gives people the theme colors after the feeds', () => {
-    expect(personColors('fruit', 2, ['#111111', '#222222', '#333333', '#444444'])).toEqual([
+    expect(personColors('fruit', 2, [undefined, undefined, '#123456', undefined])).toEqual([
       '#816e3f',
       '#4f5945',
-      '#946560',
-      '#444444',
+      '#123456',
+      '#ae4036',
     ]);
-    expect(personColors('autumn', 2, ['#111111'])).toEqual(['#111111']);
   });
 
   it('marks only night as dark', () => {

@@ -21,6 +21,23 @@ describe('config', () => {
     expect(cfg.nightMode).toEqual({ from: 21, to: 6 });
   });
 
+  it('makes feed and person colors optional, filling in Autumn colors', () => {
+    const cfg = parseConfig({
+      location: { latitude: 1, longitude: 2 },
+      feeds: [
+        { name: 'A', url: 'https://x.test/a.ics' },
+        { name: 'B', color: '#112233', url: 'https://x.test/b.ics' },
+      ],
+      people: [{ name: 'Sam' }],
+    });
+    expect(cfg.feeds.map((f) => [f.color, f.customColor])).toEqual([
+      ['#a0522d', false],
+      ['#112233', true],
+    ]);
+    // People take the colors after the feeds'.
+    expect(cfg.people).toEqual([{ name: 'Sam', color: '#4f6d73', customColor: false }]);
+  });
+
   it('validates theme and night mode', () => {
     const base = {
       location: { latitude: 1, longitude: 2 },

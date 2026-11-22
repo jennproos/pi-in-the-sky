@@ -57,8 +57,9 @@ export interface ClientSettings {
   dayStartHour: number;
   dayEndHour: number;
   refreshMinutes: number;
-  feeds: { name: string; color: string }[];
-  people: Person[];
+  /** `color` is only present when set in config, where it overrides the theme. */
+  feeds: { name: string; color?: string }[];
+  people: { name: string; color?: string }[];
   display: DisplayPrefs;
   /** Hours the night theme is used when `display.autoNight` is on; null if disabled in config. */
   nightHours: { from: number; to: number } | null;

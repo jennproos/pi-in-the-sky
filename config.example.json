@@ -13,23 +13,19 @@
   "refreshMinutes": 5,
   "people": [
     {
-      "name": "Your name",
-      "color": "#7B4B6A"
+      "name": "Your name"
     },
     {
-      "name": "Cole",
-      "color": "#4F6D73"
+      "name": "Cole"
     }
   ],
   "feeds": [
     {
       "name": "Family",
-      "color": "#A0522D",
       "url": "https://calendar.google.com/calendar/ical/REPLACE_ME/basic.ics"
     },
     {
       "name": "School",
-      "color": "#66753A",
       "url": "https://example.com/school.ics"
     }
   ]

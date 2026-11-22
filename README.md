@@ -3,7 +3,7 @@
 A family wall calendar for a Raspberry Pi and a touchscreen. It merges several ICS calendar feeds into one week, day or month view, shows the current weather, and is built to be read from across a room.
 
 - **Week view** (default), **day view** and **month view**. Tap Week/Day/Month, tap a day to open it, or swipe left/right to page through. Month view draws trips and other multi-day events as bars across the days they cover.
-- Merges any number of **ICS feeds** (Google, iCloud, Outlook, school sites). Each feed has its own name and color.
+- Merges any number of **ICS feeds** (Google, iCloud, Outlook, school sites). Each feed gets a color from the current theme.
 - **Weather** from [Open-Meteo](https://open-meteo.com/) (no API key).
 - **Refreshes every 5 minutes.** If a feed or the server can't be reached, the last good data stays on screen and a small note in the footer says what failed.
 - **To-do list** beside the calendar. Add and edit items on the wall with a built-in keyboard, assign them to one person or several, and tick them off with a tap. Finished items clear at midnight.
@@ -51,12 +51,12 @@ Useful while developing: `http://localhost:5173/?view=day&date=2026-11-26` opens
   "theme": "autumn",               // starting theme; change it on the wall with the palette button
   "nightMode": { "from": 21, "to": 6 }, // dark theme between these hours, or false to turn off
   "people": [                      // who to-do items can be assigned to (optional)
-    { "name": "Your name", "color": "#7B4B6A" },
-    { "name": "Cole", "color": "#4F6D73" }
+    { "name": "Your name" },
+    { "name": "Cole" }
   ],
   "feeds": [
-    { "name": "Family", "color": "#A0522D", "url": "https://calendar.google.com/calendar/ical/…/basic.ics" },
-    { "name": "School", "color": "#66753A", "url": "webcal://…" }
+    { "name": "Family", "url": "https://calendar.google.com/calendar/ical/…/basic.ics" },
+    { "name": "School", "url": "webcal://…", "color": "#4F6D73" }  // optional: pins this color in every theme
   ]
 }
 ```
@@ -71,9 +71,9 @@ The server checks the config at startup and exits with a clear message if someth
 
 These links work like passwords. Anyone with one can read that calendar, so keep `config.json` private.
 
-**Colors that suit the autumn palette:** rust `#A0522D`, olive `#66753A`, slate teal `#4F6D73`, plum `#7B4B6A`, ochre `#B07D2B`, brick `#8E3B2F`. Pick fairly deep colors: all-day events use the feed color as a background with light text.
+**Colors:** you don't need to pick any. Calendars take the theme's colors in the order they're listed in `feeds`, and to-do `people` take the colors after those, so a person doesn't match a calendar. To pin a calendar or person to one color in every theme, give it a `"color"`. Pick a fairly deep color: all-day events use it as a background with light text.
 
-**Themes:** tap the palette button in the bottom-right corner of the wall to pick a theme: `autumn`, `baking`, `camping`, `birds`, `fruit`, `garden`, `bouquets`, `woodland` or `night`. The wall remembers your pick in `data/display.json`, so `theme` in config is only the starting choice. Night mode switches to the dim `night` theme during the `nightMode` hours, and can be turned off from the same screen. Calendars take the theme's colors in the order they're listed in `feeds`, and to-do `people` take the colors after those, so a person never matches a calendar. Autumn uses the colors from config, and Night keeps your chosen theme's calendar and people colors, dimmed a little. Palettes live in `src/shared/themes.ts`, and a test checks each one for readable contrast.
+**Themes:** tap the palette button in the bottom-right corner of the wall to pick a theme: `autumn`, `baking`, `camping`, `birds`, `fruit`, `garden`, `bouquets`, `woodland` or `night`. The wall remembers your pick in `data/display.json`, so `theme` in config is only the starting choice. Night mode switches to the dim `night` theme during the `nightMode` hours, and can be turned off from the same screen. Night keeps your chosen theme's calendar and people colors, dimmed a little. Palettes live in `src/shared/themes.ts`, and a test checks each one for readable contrast.
 
 **Time zones:** the browser shows events in its own local time zone. On the Pi, the browser and server share the system zone, so set it once (`sudo raspi-config` → Localisation Options → Timezone). `timeZone` in config only controls how the server places floating times and all-day events.
 
@@ -183,7 +183,7 @@ The runner connects *out* to GitHub, so you don't need to open any ports on your
    Or set it in the browser: **Settings → Secrets and variables → Actions → Variables**.
 4. **First deploy.** Open **Actions → CI and deploy → Run workflow** on `main`. The first run installs the app, creates `~/pi-in-the-sky/config.json` from the example, then **stops on purpose** so you can fill it in:
    ```sh
-   nano ~/pi-in-the-sky/config.json   # feeds, location, people, colors
+   nano ~/pi-in-the-sky/config.json   # feeds, location, people
    ```
    Then click **Re-run all jobs** on that run. It should go green, and http://127.0.0.1:3000 shows the calendar.
 

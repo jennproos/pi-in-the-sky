@@ -6,8 +6,8 @@ import { formatHour, paletteVars } from '../lib/theme';
 interface Props {
   prefs: DisplayPrefs;
   nightHours: { from: number; to: number } | null;
-  /** Feed colors from config, to preview each theme's calendar colors. */
-  feedColors: string[];
+  /** Feed colors set in config (undefined where the theme picks), for the previews. */
+  feedOverrides: (string | undefined)[];
   /** It's night hours and automatic night mode is on. */
   isNight: boolean;
   error: string | null;
@@ -16,7 +16,7 @@ interface Props {
 }
 
 /** Pick a color theme and turn automatic night mode on or off. */
-export function ThemePicker({ prefs, nightHours, feedColors, isNight, error, onChange, onClose }: Props) {
+export function ThemePicker({ prefs, nightHours, feedOverrides, isNight, error, onChange, onClose }: Props) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', handler);
@@ -43,7 +43,7 @@ export function ThemePicker({ prefs, nightHours, feedColors, isNight, error, onC
                 <span className="theme-preview-col">
                   <span className="theme-preview-today" />
                   {/* Night keeps the chosen theme's calendar colors. */}
-                  {themeFeedColors(name === 'night' ? prefs.theme : name, feedColors.slice(0, 3)).map((c, i) => (
+                  {themeFeedColors(name === 'night' ? prefs.theme : name, feedOverrides.slice(0, 3)).map((c, i) => (
                     <span key={i} className="theme-preview-event" style={{ '--feed': c } as CSSProperties} />
                   ))}
                 </span>

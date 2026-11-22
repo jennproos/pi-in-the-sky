@@ -153,7 +153,7 @@ function Calendar({ settings }: { settings: ClientSettings }) {
             <li
               key={f.name}
               className={events.failedFeeds.some((x) => x.name === f.name) ? 'is-failed' : undefined}
-              style={{ '--feed': display.feedColors.get(f.name) ?? f.color } as CSSProperties}
+              style={{ '--feed': display.feedColors.get(f.name) } as CSSProperties}
             >
               <span className="swatch" />
               {f.name}
@@ -177,7 +177,7 @@ function Calendar({ settings }: { settings: ClientSettings }) {
         <ThemePicker
           prefs={display.prefs}
           nightHours={settings.nightHours}
-          feedColors={settings.feeds.map((f) => f.color)}
+          feedOverrides={settings.feeds.map((f) => f.color)}
           isNight={display.isNight}
           error={display.error}
           onChange={display.change}

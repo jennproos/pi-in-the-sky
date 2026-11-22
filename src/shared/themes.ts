@@ -34,8 +34,9 @@ export interface Theme {
   dark: boolean;
   palette: Palette;
   /**
-   * Calendar colors, given to feeds in config order, then to to-do people. Deep enough for light text on an
-   * all-day event. Without a list (or past its end) a feed or person keeps its color from config.
+   * Calendar colors, given to feeds in config order, then to to-do people, repeating if
+   * there are more. Deep enough for light text on an all-day event. Night has none and
+   * uses Autumn's.
    */
   calendars?: string[];
 }
@@ -52,6 +53,7 @@ export const THEMES = {
   autumn: {
     label: 'Autumn',
     dark: false,
+    calendars: ['#a0522d', '#66753a', '#4f6d73', '#7b4b6a', '#986706', '#8e3b2f'],
     palette: light({
       lichen: '#d9d6c7',
       birch: '#ece9df',
@@ -198,24 +200,24 @@ export const THEME_NAMES = Object.keys(THEMES) as ThemeName[];
 export const DEFAULT_THEME: ThemeName = 'autumn';
 
 /**
- * Each feed's color under a theme, in config order. Autumn (the palette the config colors
- * were picked for) and Night keep the config colors.
+ * Each feed's color under a theme, in config order. A color set in config (`overrides[i]`)
+ * wins in every theme.
  */
-export function feedColors(theme: ThemeName, configColors: string[]): string[] {
-  return themeColors(theme, configColors, 0);
+export function feedColors(theme: ThemeName, overrides: (string | undefined)[]): string[] {
+  return themeColors(theme, overrides, 0);
 }
 
 /**
  * Each to-do person's color under a theme. People take the colors after the feeds' so a
- * person never matches a calendar; past the end of the list they keep their config color.
+ * person doesn't match a calendar (until the list runs out and repeats).
  */
-export function personColors(theme: ThemeName, feedCount: number, configColors: string[]): string[] {
-  return themeColors(theme, configColors, feedCount);
+export function personColors(theme: ThemeName, feedCount: number, overrides: (string | undefined)[]): string[] {
+  return themeColors(theme, overrides, feedCount);
 }
 
-function themeColors(theme: ThemeName, configColors: string[], offset: number): string[] {
-  const list: string[] = (THEMES[theme] as Theme).calendars ?? [];
-  return configColors.map((c, i) => list[offset + i] ?? c);
+function themeColors(theme: ThemeName, overrides: (string | undefined)[], offset: number): string[] {
+  const list = (THEMES[theme] as Theme).calendars ?? THEMES.autumn.calendars;
+  return overrides.map((c, i) => c ?? list[(offset + i) % list.length]!);
 }
 
 export function isThemeName(name: unknown): name is ThemeName {
