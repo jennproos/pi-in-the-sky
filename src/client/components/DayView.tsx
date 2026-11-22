@@ -65,7 +65,6 @@ export function DayView({ day, now, events, startHour, endHour }: Props) {
           })}
           <div className="grid-line-end" />
           {showNow && <div className="now-line" style={{ top: `${nowTop * 100}%` }} />}
-          {placed.length === 0 && sideEmpty && <div className="grid-empty">Nothing planned</div>}
         </div>
       </div>
 
