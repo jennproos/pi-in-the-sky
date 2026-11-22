@@ -74,14 +74,19 @@ export function formatClock(d: Date): { time: string; period: string } {
   return { time: format(d, 'h:mm'), period: format(d, 'aaa') };
 }
 
-/** Time label for an event as shown on a given day. */
-export function timeLabel(e: CalendarEvent, day: Date): string {
+/**
+ * Time label for an event as shown on a given day. `compact` drops the end time,
+ * for narrow week-view columns.
+ */
+export function timeLabel(e: CalendarEvent, day: Date, compact = false): string {
   if (e.allDay) return 'All day';
   const s = eventStart(e);
   const en = eventEnd(e);
   const startsToday = isSameDay(s, day);
   const endsToday = isSameDay(en, day) || en.getTime() === addDays(startOfDay(day), 1).getTime();
-  if (startsToday && endsToday) return en.getTime() > s.getTime() ? `${formatTime(s)} – ${formatTime(en)}` : formatTime(s);
+  if (startsToday && endsToday) {
+    return en.getTime() > s.getTime() && !compact ? `${formatTime(s)} – ${formatTime(en)}` : formatTime(s);
+  }
   if (startsToday) return `From ${formatTime(s)}`;
   if (endsToday) return `Until ${formatTime(en)}`;
   return 'All day';

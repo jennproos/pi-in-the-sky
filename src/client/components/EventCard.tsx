@@ -7,12 +7,14 @@ interface Props {
   day: Date;
   now: Date;
   showLocation?: boolean;
+  /** Start time only (week view). */
+  compactTime?: boolean;
   style?: CSSProperties;
   className?: string;
   hidden?: boolean;
 }
 
-export function EventCard({ event, day, now, showLocation, style, className = '', hidden }: Props) {
+export function EventCard({ event, day, now, showLocation, compactTime, style, className = '', hidden }: Props) {
   const done = eventEnd(event).getTime() <= now.getTime();
   const classes = ['event', event.allDay ? 'is-allday' : '', done ? 'is-done' : '', className]
     .filter(Boolean)
@@ -24,7 +26,7 @@ export function EventCard({ event, day, now, showLocation, style, className = ''
       aria-hidden={hidden || undefined}
       style={{ '--feed': event.color, ...style } as CSSProperties}
     >
-      {!event.allDay && <div className="event-time">{timeLabel(event, day)}</div>}
+      {!event.allDay && <div className="event-time">{timeLabel(event, day, compactTime)}</div>}
       <div className="event-title">{event.title}</div>
       {showLocation && event.location && <div className="event-location">{event.location}</div>}
     </article>

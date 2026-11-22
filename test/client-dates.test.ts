@@ -36,6 +36,12 @@ describe('client date helpers', () => {
     expect(timeLabel(events[1]!, sat)).toBe('From 10 pm');
   });
 
+  it('drops the end time in compact mode', () => {
+    const e = ev({ start: '2026-11-21T15:00:00.000Z', end: '2026-11-21T15:30:00.000Z' });
+    expect(timeLabel(e, sat)).toBe('9 am – 9:30 am');
+    expect(timeLabel(e, sat, true)).toBe('9 am');
+  });
+
   it('formats times compactly', () => {
     expect(formatTime(new Date(2026, 0, 1, 16, 0))).toBe('4 pm');
     expect(formatTime(new Date(2026, 0, 1, 9, 30))).toBe('9:30 am');

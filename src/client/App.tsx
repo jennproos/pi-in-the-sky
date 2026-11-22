@@ -4,12 +4,14 @@ import type { ClientSettings } from '../shared/types';
 import { DayView } from './components/DayView';
 import { Header } from './components/Header';
 import { RefreshStatus } from './components/RefreshStatus';
+import { TodoPanel } from './components/TodoPanel';
 import { WeekView } from './components/WeekView';
 import { useEvents } from './hooks/useEvents';
 import { useIdleReset } from './hooks/useIdleReset';
 import { useNow } from './hooks/useNow';
 import { useSettings } from './hooks/useSettings';
 import { useSwipe } from './hooks/useSwipe';
+import { useTodos } from './hooks/useTodos';
 import { useWeather } from './hooks/useWeather';
 import { dayKey, eventsForDay, fetchRange, parseDateKey, periodLabel, step, weekDays, type View } from './lib/dates';
 
@@ -27,6 +29,9 @@ export function App() {
 function Calendar({ settings }: { settings: ClientSettings }) {
   const now = useNow();
   const weather = useWeather();
+  const todos = useTodos();
+  /** Bumped by the idle reset to put the to-do panel back to its default state. */
+  const [resetCount, setResetCount] = useState(0);
   // Optional ?view=day&date=2026-11-21 for development and screenshots.
   const [view, setView] = useState<View>(() => (initialParams.get('view') === 'day' ? 'day' : 'week'));
   const [anchor, setAnchor] = useState(() => {
@@ -75,6 +80,7 @@ function Calendar({ settings }: { settings: ClientSettings }) {
       setMotion('none');
       setView('week');
       setAnchor(new Date());
+      setResetCount((n) => n + 1);
     },
     dayKey(now),
   );
@@ -100,20 +106,23 @@ function Calendar({ settings }: { settings: ClientSettings }) {
         onNext={() => go(1)}
         onToday={goToday}
       />
-      <main className="main" {...swipe}>
-        <div key={periodKey} className={`period-body slide-${motion}`}>
-          {view === 'week' ? (
-            <WeekView days={days} now={now} events={allEvents} onOpenDay={openDay} />
-          ) : (
-            <DayView
-              day={anchor}
-              now={now}
-              events={eventsForDay(allEvents, anchor)}
-              startHour={settings.dayStartHour}
-              endHour={settings.dayEndHour}
-            />
-          )}
+      <main className="main">
+        <div className="calendar-area" {...swipe}>
+          <div key={periodKey} className={`period-body slide-${motion}`}>
+            {view === 'week' ? (
+              <WeekView days={days} now={now} events={allEvents} onOpenDay={openDay} />
+            ) : (
+              <DayView
+                day={anchor}
+                now={now}
+                events={eventsForDay(allEvents, anchor)}
+                startHour={settings.dayStartHour}
+                endHour={settings.dayEndHour}
+              />
+            )}
+          </div>
         </div>
+        <TodoPanel key={resetCount} people={settings.people} state={todos} />
       </main>
       <footer className="footer">
         <ul className="legend">

@@ -59,7 +59,7 @@ export function DayColumn({ day, now, events, onOpen }: Props) {
       <div className="day-body" ref={bodyRef}>
         <div className="day-list" ref={listRef}>
           {events.map((e, i) => (
-            <EventCard key={e.id} event={e} day={day} now={now} hidden={i >= fit} className={i >= fit ? 'is-overflow' : ''} />
+            <EventCard key={e.id} event={e} day={day} now={now} compactTime hidden={i >= fit} className={i >= fit ? 'is-overflow' : ''} />
           ))}
           {events.length === 0 && <div className="day-empty">Nothing planned</div>}
         </div>
