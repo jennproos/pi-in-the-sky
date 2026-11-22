@@ -2,5 +2,5 @@
 Type=Application
 Name=Family calendar kiosk
 Comment=Open the family calendar full-screen
-Exec=/home/YOUR_USER/pi-in-the-sky/deploy/kiosk.sh
+Exec=/home/YOUR_USER/pi-in-the-sky/current/deploy/kiosk.sh
 X-GNOME-Autostart-enabled=true

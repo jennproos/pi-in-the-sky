@@ -1,4 +1,5 @@
-import { existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fastifyStatic from '@fastify/static';
@@ -48,7 +49,16 @@ export async function buildApp(config: AppConfig, deps: AppDeps = {}): Promise<F
     log: (msg) => app.log.warn(msg),
   });
 
+  // Identifies the client build being served, so open screens can reload after a deploy.
+  // deploy/deploy.sh computes the same value to confirm the new version is live.
+  const clientDir = deps.clientDir ?? defaultClientDir();
+  const indexHtml = join(clientDir, 'index.html');
+  const version = existsSync(indexHtml)
+    ? createHash('sha256').update(readFileSync(indexHtml)).digest('hex').slice(0, 12)
+    : 'dev';
+
   app.get('/api/health', async () => ({ ok: true }));
+  app.get('/api/version', async () => ({ version }));
 
   app.get('/api/settings', async (): Promise<ClientSettings> => ({
     locationName: config.location.name,
@@ -129,8 +139,7 @@ export async function buildApp(config: AppConfig, deps: AppDeps = {}): Promise<F
     }
   });
 
-  const clientDir = deps.clientDir ?? defaultClientDir();
-  if (existsSync(join(clientDir, 'index.html'))) {
+  if (version !== 'dev') {
     // Files are looked up on disk per request, so a rebuild doesn't need a restart.
     await app.register(fastifyStatic, { root: clientDir });
     app.setNotFoundHandler((req, reply) => {

@@ -11,6 +11,16 @@
   "dayStartHour": 7,
   "dayEndHour": 21,
   "refreshMinutes": 5,
+  "people": [
+    {
+      "name": "Your name",
+      "color": "#7B4B6A"
+    },
+    {
+      "name": "Cole",
+      "color": "#4F6D73"
+    }
+  ],
   "feeds": [
     {
       "name": "Family",

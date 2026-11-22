@@ -9,6 +9,7 @@ import { WeekView } from './components/WeekView';
 import { useEvents } from './hooks/useEvents';
 import { useIdleReset } from './hooks/useIdleReset';
 import { useNow } from './hooks/useNow';
+import { useReloadOnDeploy } from './hooks/useReloadOnDeploy';
 import { useSettings } from './hooks/useSettings';
 import { useSwipe } from './hooks/useSwipe';
 import { useTodos } from './hooks/useTodos';
@@ -30,6 +31,7 @@ function Calendar({ settings }: { settings: ClientSettings }) {
   const now = useNow();
   const weather = useWeather();
   const todos = useTodos();
+  useReloadOnDeploy();
   /** Bumped by the idle reset to put the to-do panel back to its default state. */
   const [resetCount, setResetCount] = useState(0);
   // Optional ?view=day&date=2026-11-21 for development and screenshots.

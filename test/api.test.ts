@@ -39,6 +39,12 @@ const app = await buildApp(config, { fetch, clientDir });
 afterAll(() => app.close());
 
 describe('API', () => {
+  it('GET /api/version identifies the served client build', async () => {
+    const { createHash } = await import('node:crypto');
+    const expected = createHash('sha256').update('<!doctype html><title>cal</title>').digest('hex').slice(0, 12);
+    expect((await app.inject('/api/version')).json()).toEqual({ version: expected });
+  });
+
   it('GET /api/settings exposes display settings but not feed URLs', async () => {
     const res = await app.inject('/api/settings');
     expect(res.json()).toMatchObject({ weekStartsOn: 0, refreshMinutes: 5, feeds: [{ name: 'School', color: '#6B8E5A' }] });

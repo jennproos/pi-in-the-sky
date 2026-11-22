@@ -1,0 +1,60 @@
+name: CI and deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+      # Everything the Pi needs to run this version. Source and dev tooling stay here.
+      - name: Package release
+        run: |
+          mkdir -p release
+          cp -R dist deploy package.json package-lock.json config.example.json .nvmrc release/
+          echo "${GITHUB_SHA}" > release/REVISION
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release
+          path: release/
+          include-hidden-files: true
+          retention-days: 14
+
+  deploy:
+    name: Deploy to the wall calendar
+    needs: test
+    # Only for pushes to main, and only once a Pi runner is set up and the
+    # DEPLOY_ENABLED repository variable is "true" (see README → Automatic deploys).
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+    runs-on: [self-hosted, pi-calendar]
+    concurrency:
+      group: deploy
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: release
+          path: ${{ runner.temp }}/release
+
+      - name: Install, switch over and health-check
+        run: bash "${{ runner.temp }}/release/deploy/deploy.sh" "${{ runner.temp }}/release"

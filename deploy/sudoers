@@ -1,0 +1,4 @@
+# Lets the deploy (running as YOUR_USER via the GitHub Actions runner) restart
+# the calendar service without a password, and nothing else.
+# Install: see README → Automatic deploys.
+YOUR_USER ALL=(root) NOPASSWD: /usr/bin/systemctl restart pi-in-the-sky
